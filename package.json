@@ -1,14 +1,15 @@
 {
   "name": "vite-plugin-biome",
   "version": "1.0.0",
-  "description": "",
+  "description": "Biome plugin for Vite",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["biome", "vite", "vite-plugin"],
+  "author": "Mikkel Espolin Birkeland",
+  "license": "MIT",
+  "homepage": "https://github.com/skrulling/vite-plugin-biome",
   "devDependencies": {
     "@biomejs/biome": "1.4.1",
     "@types/node": "^20.10.5",
