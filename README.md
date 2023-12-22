@@ -17,10 +17,12 @@ npm install vite-plugin-biome
 
 Add the plugin to your `vite.config.js`
 
-```
+```javascript
 import biomePlugin from 'vite-plugin-biome';
 
 export default {
   plugins: [biomePlugin()],
 };
 ```
+
+[Check it out on GitHub](https://github.com/skrulling/vite-plugin-biome)
