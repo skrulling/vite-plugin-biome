@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-biome",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Biome plugin for Vite",
   "main": "dist/index.js",
   "scripts": {
