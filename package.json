@@ -13,8 +13,10 @@
   "author": "Mikkel Espolin Birkeland",
   "license": "MIT",
   "homepage": "https://github.com/skrulling/vite-plugin-biome",
+  "dependencies": {
+    "@biomejs/biome": "1.4.1"
+  },
   "devDependencies": {
-    "@biomejs/biome": "1.4.1",
     "@types/node": "^20.10.5",
     "typescript": "^5.3.3",
     "vite": "^5.0.10"
