@@ -4,7 +4,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { Options } from './types';
 
-const biomePlugin = (options: Options = {lintPath: "."}): Plugin => {
+const biomePlugin = (
+  options: Options = { lintPath: '.', failOnError: false }
+): Plugin => {
   return {
     name: 'vite-plugin-biome',
     buildStart() {
@@ -16,7 +18,12 @@ const biomePlugin = (options: Options = {lintPath: "."}): Plugin => {
       // Use the local biome command
       exec(`biome lint ${lintPath}`, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error: ${error.message}`);
+          const errorMessage = `Error: ${error.message}`;
+          if (options.failOnError) {
+            this.error(errorMessage);
+          } else {
+            console.error(errorMessage);
+          }
           return;
         }
         if (stderr) {
@@ -30,4 +37,3 @@ const biomePlugin = (options: Options = {lintPath: "."}): Plugin => {
 };
 
 export default biomePlugin;
-
