@@ -1,3 +1,4 @@
 export interface Options {
-    lintPath: string;
+  lintPath?: string;
+  failOnError?: boolean;
 }
