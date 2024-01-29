@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
-const biomePlugin = (options = { lintPath: "." }) => {
+const biomePlugin = (options = { lintPath: '.', failOnError: false }) => {
     return {
         name: 'vite-plugin-biome',
         buildStart() {
@@ -11,7 +11,13 @@ const biomePlugin = (options = { lintPath: "." }) => {
             // Use the local biome command
             exec(`biome lint ${lintPath}`, (error, stdout, stderr) => {
                 if (error) {
-                    console.error(`Error: ${error.message}`);
+                    const errorMessage = `Error: ${error.message}`;
+                    if (options.failOnError) {
+                        this.error(errorMessage);
+                    }
+                    else {
+                        console.error(errorMessage);
+                    }
                     return;
                 }
                 if (stderr) {
