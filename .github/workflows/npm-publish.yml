@@ -25,7 +25,19 @@ jobs:
     - name: Create .npmrc file
       run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
+    - name: Check if version has changed
+      id: check-version
+      run: |
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        NPM_VERSION=$(npm view [package-name] version || echo '0.0.0')
+        if [ "$PACKAGE_VERSION" = "$NPM_VERSION" ]; then
+          echo "::set-output name=changed::false"
+        else
+          echo "::set-output name=changed::true"
+        fi
+
     - name: Publish to npm
+      if: steps.check-version.outputs.changed == 'true'
       run: npm publish
       env:
-        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
