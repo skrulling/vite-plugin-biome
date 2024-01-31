@@ -1,15 +1,25 @@
 import { exec } from 'child_process';
-import path from 'path';
-import { fileURLToPath } from 'url';
-const biomePlugin = (options = { lintPath: '.', failOnError: false }) => {
+const biomePlugin = (options = { mode: 'lint', files: '.', applyFixes: false, failOnError: false }) => {
     return {
         name: 'vite-plugin-biome',
         buildStart() {
-            // Get the directory name of the current module
-            const __dirname = path.dirname(fileURLToPath(import.meta.url));
-            const lintPath = options.lintPath;
-            // Use the local biome command
-            exec(`biome lint ${lintPath}`, (error, stdout, stderr) => {
+            const files = options.files;
+            let command;
+            // Determine the command based on the mode
+            switch (options.mode) {
+                case 'format':
+                    command = `biome format ${files} ${options.applyFixes ? '--write' : ''}`;
+                    break;
+                case 'check':
+                    command = `biome check ${options.applyFixes ? '--apply' : ''} ${files}`;
+                    break;
+                case 'lint':
+                default:
+                    command = `biome lint ${files} ${options.applyFixes ? '--apply' : ''}`;
+                    break;
+            }
+            // Execute the command
+            exec(command, (error, stdout, stderr) => {
                 if (error) {
                     const errorMessage = `Error: ${error.message}`;
                     if (options.failOnError) {
@@ -24,7 +34,7 @@ const biomePlugin = (options = { lintPath: '.', failOnError: false }) => {
                     console.error(`Stderr: ${stderr}`);
                     return;
                 }
-                console.log(`Biome Linter Output:\n${stdout}`);
+                console.log(`Biome Output:\n${stdout}`);
             });
         },
     };
