@@ -12,7 +12,7 @@ This is a Vite plugin for integrating the Biome linter into your Vite project. I
 ## Installation
 
 ```bash
-npm install vite-plugin-biome
+npm install vite-plugin-biome @biomejs/biome
 ```
 
 ## Usage
