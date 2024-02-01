@@ -8,14 +8,14 @@ const biomePlugin = (options = { mode: 'lint', files: '.', applyFixes: false, fa
             // Determine the command based on the mode
             switch (options.mode) {
                 case 'format':
-                    command = `biome format ${files} ${options.applyFixes ? '--write' : ''}`;
+                    command = `npx @biomejs/biome format ${files} ${options.applyFixes ? '--write' : ''} --colors=force`;
                     break;
                 case 'check':
-                    command = `biome check ${options.applyFixes ? '--apply' : ''} ${files}`;
+                    command = `npx @biomejs/biome check ${options.applyFixes ? '--apply' : ''} ${files} --colors=force`;
                     break;
                 case 'lint':
                 default:
-                    command = `biome lint ${files} ${options.applyFixes ? '--apply' : ''}`;
+                    command = `npx @biomejs/biome lint ${files} ${options.applyFixes ? '--apply' : ''} --colors=force`;
                     break;
             }
             // Execute the command
