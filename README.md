@@ -1,6 +1,6 @@
 # Vite Plugin Biome
 
-This is a Vite plugin for integrating the Biome linter into your Vite project. It allows you to lint, format, or check your project files using Biome directly within the Vite build process.
+This is a Vite plugin for integrating the [Biome](https://biomejs.dev/) linter into your Vite project. It allows you to lint, format, or check your project files using Biome directly within the Vite build process.
 
 ## Features
 
