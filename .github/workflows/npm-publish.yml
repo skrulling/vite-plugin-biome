@@ -29,7 +29,7 @@ jobs:
       id: check-version
       run: |
         PACKAGE_VERSION=$(node -p "require('./package.json').version")
-        NPM_VERSION=$(npm view [package-name] version || echo '0.0.0')
+        NPM_VERSION=$(npm view vite-plugin-biome version || echo '0.0.0')
         if [ "$PACKAGE_VERSION" = "$NPM_VERSION" ]; then
           echo "::set-output name=changed::false"
         else
