@@ -1,6 +1,7 @@
 # Vite Plugin Biome
 
 This is a Vite plugin for integrating the [Biome](https://biomejs.dev/) linter into your Vite project. It allows you to lint, format, or check your project files using Biome directly within the Vite build process.
+It is much faster than eslint.
 
 ## Features
 
@@ -8,6 +9,7 @@ This is a Vite plugin for integrating the [Biome](https://biomejs.dev/) linter i
 - Supports different modes: linting, formatting, and checking.
 - Prints Biome output to the console.
 - Configurable to apply fixes and handle errors.
+- Reacts to hot reload
 
 ## Installation
 
@@ -82,10 +84,12 @@ export default {
 
 ### Options
 
-- `mode`: `'lint'` (default), `'format'`, or `'check'`.
-- `files`: File or glob pattern to process (e.g., `'src/**/*.js'`). The default is `'.'`, for all files.
-- `applyFixes`: `true` to apply fixes (for `format` and `check` modes), `false` otherwise.
-- `failOnError`: Set to `true` to fail the build on errors, `false` by default.
+| Option        | Description                                  | Values              | Default |
+|---------------|----------------------------------------------|---------------------|---------|
+| `mode`        | The operation mode of the plugin             | `lint`, `format`, `check` | `lint` |
+| `files`       | File or glob pattern to process              | e.g., `'src/**/*.js'`| `'.'`   |
+| `applyFixes`  | Whether to apply fixes automatically         | `true`, `false`     | `false` |
+| `failOnError` | Whether to fail the build on lint errors     | `true`, `false`     | `false` |
 
 ## License
 
