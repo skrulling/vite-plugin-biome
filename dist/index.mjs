@@ -5,29 +5,44 @@ const biomePlugin = (options = { mode: 'lint', files: '.', applyFixes: false, fa
         const filesPath = path.join(process.cwd(), options.files ?? ".");
         const commandBase = `npx @biomejs/biome`;
         const command = `${commandBase} ${options.mode} ${filesPath} ${options.applyFixes ? (options.mode === 'format' ? '--write' : '--apply') : ''} --colors=force`;
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
+                if (stderr) {
+                    console.error(`Biome Stderr:\n${stderr}`);
+                }
                 if (stdout) {
                     console.log(`Biome Output:\n${stdout}`);
                 }
-                if (stderr) {
-                    console.error(`Biome Stderr: ${stderr}`);
-                }
                 if (error) {
-                    // Log the error message but do not reject the promise if there's useful output
-                    console.error(`Biome Error: ${error.message}`);
+                    console.log(error.code);
+                    if (!stderr.includes("lint/style")) {
+                        console.error(`Biome Execution Error: ${error.message}`);
+                    }
+                    if (options.failOnError)
+                        reject(`Build failed due to Biome errors.`);
                 }
-                resolve(); // Always resolve to continue the build process without failing
+                resolve();
             });
         });
     };
+    const debounce = (func, wait) => {
+        let timeout = null;
+        return (...args) => {
+            const context = this;
+            if (timeout !== null) {
+                clearTimeout(timeout);
+            }
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    };
+    const debouncedExecuteCommand = debounce(executeCommand, 500);
     return {
         name: 'vite-plugin-biome',
         async buildStart() {
             await executeCommand();
         },
         async handleHotUpdate() {
-            await executeCommand();
+            await debouncedExecuteCommand();
         },
     };
 };
