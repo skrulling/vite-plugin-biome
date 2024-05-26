@@ -5,9 +5,9 @@ import { Options } from './types';
 
 const biomePlugin = (options: Options = { mode: 'lint', files: '.', applyFixes: false, failOnError: false }): Plugin => {
   const executeCommand = async () => {
-    const filesPath = path.join(process.cwd(), options.files ?? ".");
+    const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
     const commandBase = `npx @biomejs/biome`;
-    const command = `${commandBase} ${options.mode} ${filesPath} ${options.applyFixes ? (options.mode === 'format' ? '--write' : '--apply') : ''
+    const command = `${commandBase} ${options.mode} "${filesPath}" ${options.applyFixes ? (options.mode === 'format' ? '--write' : '--apply') : ''
       } --colors=force`;
 
     return new Promise<void>((resolve, reject) => {
