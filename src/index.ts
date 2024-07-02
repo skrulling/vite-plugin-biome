@@ -3,11 +3,23 @@ import { exec } from 'child_process';
 import path from 'path';
 import { Options } from './types';
 
-const biomePlugin = (options: Options = { mode: 'lint', files: '.', applyFixes: false, failOnError: false }): Plugin => {
+const biomePlugin = (options: Options = {}): Plugin => {
   const executeCommand = async () => {
     const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
-    const commandBase = `npx @biomejs/biome`;
-    const command = `${commandBase} ${options.mode} "${filesPath}" ${options.applyFixes ? '--write' : ''} ${(options.applyFixes && options.unsafe) ? '--unsafe' : ''} --colors=force`;
+    const command = [
+      options.biomeCommandBase ?? 'npx @biomejs/biome',
+      options.mode ?? 'lint',
+      `"${filesPath}"`,
+      (options.forceColor ?? true) && '--colors=force',
+      options.diagnosticLevel && `--diagnostic-level=${options.diagnosticLevel}`,
+      options.logKind && `--log-kind=${options.logKind}`,
+      options.applyFixes && '--write',
+      options.applyFixes && options.unsafe && '--unsafe',
+      options.biomeAdditionalArgs,
+    ]
+      // remove excluded args
+      .filter((a: undefined | false | string): a is string => !!a)
+      .join(" ");
 
     return new Promise<void>((resolve, reject) => {
       exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
@@ -48,7 +60,7 @@ const biomePlugin = (options: Options = { mode: 'lint', files: '.', applyFixes: 
       await executeCommand();
     },
     async handleHotUpdate() {
-      await debouncedExecuteCommand();
+      debouncedExecuteCommand();
     },
   };
 };
