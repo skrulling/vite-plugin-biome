@@ -1,26 +1,35 @@
 {
   "name": "vite-plugin-biome",
-  "version": "1.0.12",
+  "version": "1.1.0",
   "description": "Biome plugin for Vite",
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "build": "tsc && node rename-to-mjs.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["biome", "vite", "vite-plugin"],
+  "keywords": [
+    "biome",
+    "vite",
+    "vite-plugin"
+  ],
   "author": "Mikkel Espolin Birkeland",
   "license": "MIT",
   "homepage": "https://github.com/skrulling/vite-plugin-biome",
-  "files": ["dist/"],
+  "files": [
+    "dist/"
+  ],
   "peerDependencies": {
-    "@biomejs/biome": "^1.8.0"
+    "@biomejs/biome": ">=1.8.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.8",
     "@types/node": "^20.10.5",
     "typescript": "^5.3.3",
     "vite": "^5.0.10"
   }
 }
-

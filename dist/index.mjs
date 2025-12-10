@@ -1,10 +1,36 @@
 import { exec } from 'child_process';
 import path from 'path';
-const biomePlugin = (options = { mode: 'lint', files: '.', applyFixes: false, failOnError: false }) => {
+import { createRequire } from 'module';
+const resolveBiomeBin = () => {
+    const require = createRequire(process.cwd() + "/");
+    try {
+        // Resolve Biome from the consumer project (process.cwd()).
+        const pkgPath = require.resolve('@biomejs/biome/package.json', { paths: [process.cwd()] });
+        const pkgDir = path.dirname(pkgPath);
+        return path.join(pkgDir, 'bin', 'biome');
+    }
+    catch (error) {
+        throw new Error('Could not find @biomejs/biome. Please install it in your project.');
+    }
+};
+const biomePlugin = (options = {}) => {
     const executeCommand = async () => {
-        const filesPath = path.join(process.cwd(), options.files ?? ".");
-        const commandBase = `npx @biomejs/biome`;
-        const command = `${commandBase} ${options.mode} ${filesPath} ${options.applyFixes ? (options.mode === 'format' ? '--write' : '--apply') : ''} --colors=force`;
+        const biomeCommandBase = options.biomeCommandBase ?? `"${resolveBiomeBin()}"`;
+        const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
+        const command = [
+            biomeCommandBase,
+            options.mode ?? 'lint',
+            `"${filesPath}"`,
+            (options.forceColor ?? true) && '--colors=force',
+            options.diagnosticLevel && `--diagnostic-level=${options.diagnosticLevel}`,
+            options.logKind && `--log-kind=${options.logKind}`,
+            options.applyFixes && '--write',
+            options.applyFixes && options.unsafe && '--unsafe',
+            options.biomeAdditionalArgs,
+        ]
+            // remove excluded args
+            .filter((a) => !!a)
+            .join(" ");
         return new Promise((resolve, reject) => {
             exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
                 if (stderr) {
@@ -42,7 +68,7 @@ const biomePlugin = (options = { mode: 'lint', files: '.', applyFixes: false, fa
             await executeCommand();
         },
         async handleHotUpdate() {
-            await debouncedExecuteCommand();
+            debouncedExecuteCommand();
         },
     };
 };

@@ -1,13 +1,27 @@
 import { Plugin } from 'vite';
 import { exec } from 'child_process';
 import path from 'path';
+import { createRequire } from 'module';
 import { Options } from './types';
+
+const resolveBiomeBin = (): string => {
+  const require = createRequire(process.cwd() + "/");
+  try {
+    // Resolve Biome from the consumer project (process.cwd()).
+    const pkgPath = require.resolve('@biomejs/biome/package.json', { paths: [process.cwd()] });
+    const pkgDir = path.dirname(pkgPath);
+    return path.join(pkgDir, 'bin', 'biome');
+  } catch (error) {
+    throw new Error('Could not find @biomejs/biome. Please install it in your project.');
+  }
+};
 
 const biomePlugin = (options: Options = {}): Plugin => {
   const executeCommand = async () => {
+    const biomeCommandBase = options.biomeCommandBase ?? `"${resolveBiomeBin()}"`;
     const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
     const command = [
-      options.biomeCommandBase ?? 'npx @biomejs/biome',
+      biomeCommandBase,
       options.mode ?? 'lint',
       `"${filesPath}"`,
       (options.forceColor ?? true) && '--colors=force',

@@ -11,6 +11,17 @@ It is much faster than eslint.
 - Configurable to apply fixes and handle errors.
 - Reacts to hot reload
 
+## Compatibility
+
+This plugin is compatible with:
+- **Biome**: 1.8.0 and higher (including all 2.x versions)
+- **Vite**: 4.x and higher
+- **Node.js**: 16.x and higher
+
+The plugin uses Biome's stable CLI interface, ensuring compatibility across major Biome versions.
+
+> Note: The plugin now resolves and runs the Biome binary already installed in your project (per the peer dependency). If you need to use a different binary, override `biomeCommandBase`.
+
 ## Installation
 
 ```bash
