@@ -7,14 +7,20 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    
+
+    # Grant OIDC token permission
+    permissions:
+      contents: read
+      id-token: write  # Required for OIDC
+
     steps:
-    - uses: actions/checkout@v2
-    
+    - uses: actions/checkout@v4
+
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
-        node-version: '20' # Specify your Node.js version here
+        node-version: '20'
+        registry-url: 'https://registry.npmjs.org'
 
     - name: Install dependencies
       run: npm install
@@ -22,22 +28,19 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Create .npmrc file
-      run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
-
     - name: Check if version has changed
       id: check-version
       run: |
         PACKAGE_VERSION=$(node -p "require('./package.json').version")
         NPM_VERSION=$(npm view vite-plugin-biome version || echo '0.0.0')
         if [ "$PACKAGE_VERSION" = "$NPM_VERSION" ]; then
-          echo "::set-output name=changed::false"
+          echo "changed=false" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=changed::true"
+          echo "changed=true" >> $GITHUB_OUTPUT
         fi
 
     - name: Publish to npm
       if: steps.check-version.outputs.changed == 'true'
-      run: npm publish
+      run: npm publish --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
