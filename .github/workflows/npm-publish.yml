@@ -1,4 +1,4 @@
-name: Node.js CI
+name: npm publish (trusted)
 
 on:
   push:
@@ -8,39 +8,36 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
 
-    # Grant OIDC token permission
     permissions:
       contents: read
-      id-token: write  # Required for OIDC
+      id-token: write  # required for npm trusted publishers (OIDC)
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        registry-url: 'https://registry.npmjs.org'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Build
-      run: npm run build
+      - name: Build
+        run: npm run build
 
-    - name: Check if version has changed
-      id: check-version
-      run: |
-        PACKAGE_VERSION=$(node -p "require('./package.json').version")
-        NPM_VERSION=$(npm view vite-plugin-biome version || echo '0.0.0')
-        if [ "$PACKAGE_VERSION" = "$NPM_VERSION" ]; then
-          echo "changed=false" >> $GITHUB_OUTPUT
-        else
-          echo "changed=true" >> $GITHUB_OUTPUT
-        fi
+      - name: Check if version has changed
+        id: check-version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          NPM_VERSION=$(npm view vite-plugin-biome version || echo '0.0.0')
+          if [ "$PACKAGE_VERSION" = "$NPM_VERSION" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Publish to npm
-      if: steps.check-version.outputs.changed == 'true'
-      run: npm publish --provenance --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to npm via trusted publisher
+        if: steps.check-version.outputs.changed == 'true'
+        run: npm publish --provenance --access public
