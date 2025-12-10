@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-publish:
+  publish:
     runs-on: ubuntu-latest
 
     permissions:
@@ -18,11 +18,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
