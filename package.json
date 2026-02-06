@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-biome",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Biome plugin for Vite",
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc && node rename-to-mjs.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run"
   },
   "keywords": [
     "biome",
@@ -30,6 +30,7 @@
     "@biomejs/biome": "^2.3.8",
     "@types/node": "^20.10.5",
     "typescript": "^5.3.3",
-    "vite": "^5.0.10"
+    "vite": "^5.0.10",
+    "vitest": "^3.0.0"
   }
 }

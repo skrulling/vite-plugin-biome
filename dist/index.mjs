@@ -14,7 +14,8 @@ const resolveBiomeBin = () => {
     }
 };
 const biomePlugin = (options = {}) => {
-    const executeCommand = async () => {
+    let running = null;
+    const runBiome = async () => {
         const biomeCommandBase = options.biomeCommandBase ?? `"${resolveBiomeBin()}"`;
         const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
         const command = [
@@ -39,17 +40,23 @@ const biomePlugin = (options = {}) => {
                 if (stdout) {
                     console.log(`Biome Output:\n${stdout}`);
                 }
-                if (error) {
-                    console.log(error.code);
-                    if (!stderr.includes("lint/style")) {
-                        console.error(`Biome Execution Error: ${error.message}`);
-                    }
-                    if (options.failOnError)
-                        reject(`Build failed due to Biome errors.`);
+                if (error && options.failOnError) {
+                    reject('Build failed due to Biome errors.');
                 }
                 resolve();
             });
         });
+    };
+    const executeCommand = async () => {
+        if (running)
+            return running;
+        running = runBiome();
+        try {
+            await running;
+        }
+        finally {
+            running = null;
+        }
     };
     const debounce = (func, wait) => {
         let timeout = null;
