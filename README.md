@@ -95,12 +95,18 @@ export default {
 
 ### Options
 
-| Option        | Description                                  | Values              | Default |
-|---------------|----------------------------------------------|---------------------|---------|
-| `mode`        | The operation mode of the plugin             | `lint`, `format`, `check` | `lint` |
-| `files`       | File or glob pattern to process              | e.g., `'src/**/*.js'`| `'.'`   |
-| `applyFixes`  | Whether to apply fixes automatically         | `true`, `false`     | `false` |
-| `failOnError` | Whether to fail the build on lint errors     | `true`, `false`     | `false` |
+| Option               | Description                                                                 | Values                          | Default     |
+|----------------------|-----------------------------------------------------------------------------|---------------------------------|-------------|
+| `mode`               | The operation mode of the plugin                                            | `lint`, `format`, `check`       | `lint`      |
+| `files`              | File or glob pattern to process                                             | e.g., `'src/**/*.js'`           | `'.'`       |
+| `applyFixes`         | Whether to apply fixes automatically                                        | `true`, `false`                 | `false`     |
+| `unsafe`             | Allow unsafe fixes (requires `applyFixes`)                                  | `true`, `false`                 | `false`     |
+| `failOnError`        | Whether to fail the build on lint errors                                    | `true`, `false`                 | `false`     |
+| `forceColor`         | Force color output (adds `--colors=force`)                                  | `true`, `false`                 | `true`      |
+| `diagnosticLevel`    | Minimum level of diagnostics to show                                        | `info`, `warn`, `error`         | `info`      |
+| `logKind`            | How the log output should look                                              | `pretty`, `compact`, `check`    | `pretty`    |
+| `biomeCommandBase`   | Override the command used to invoke Biome                                    | e.g., `'npx @biomejs/biome'`   | Auto-resolved |
+| `biomeAdditionalArgs`| Additional CLI arguments passed to Biome                                    | e.g., `'--changed --config-path=...'` | —     |
 
 ## License
 
