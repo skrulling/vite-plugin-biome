@@ -16,7 +16,8 @@ const resolveBiomeBin = () => {
 const biomePlugin = (options = {}) => {
     let running = null;
     const runBiome = async () => {
-        const biomeCommandBase = options.biomeCommandBase ?? `"${resolveBiomeBin()}"`;
+        // Use process.execPath to invoke Node.js explicitly (Windows doesn't support shebangs)
+        const biomeCommandBase = options.biomeCommandBase ?? `"${process.execPath}" "${resolveBiomeBin()}"`;
         const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
         const command = [
             biomeCommandBase,
