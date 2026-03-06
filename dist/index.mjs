@@ -1,6 +1,27 @@
+import { createFilter, normalizePath } from 'vite';
 import { exec } from 'child_process';
 import path from 'path';
 import { createRequire } from 'module';
+const BIOME_CONFIG_FILES = new Set([
+    '.editorconfig',
+    'biome.json',
+    'biome.jsonc',
+]);
+const hasGlobPattern = (value) => /[*?[\]{}()!+@]/.test(value);
+const quoteForShell = (value) => `"${value.replace(/(["\\$`])/g, '\\$1')}"`;
+const resolveTargetPath = (cwd, value) => path.resolve(cwd, value);
+const createFileMatcher = (cwd, files) => {
+    if (!files || files === '.') {
+        return () => true;
+    }
+    if (hasGlobPattern(files)) {
+        const filter = createFilter(files);
+        return (file) => filter(normalizePath(path.relative(cwd, file)));
+    }
+    const targetPath = resolveTargetPath(cwd, files);
+    return (file) => file === targetPath || file.startsWith(`${targetPath}${path.sep}`);
+};
+const isBiomeConfigFile = (file) => BIOME_CONFIG_FILES.has(path.basename(file));
 const resolveBiomeBin = () => {
     const require = createRequire(process.cwd() + "/");
     try {
@@ -14,15 +35,23 @@ const resolveBiomeBin = () => {
     }
 };
 const biomePlugin = (options = {}) => {
+    const cwd = process.cwd();
+    const useChangedFileHotUpdates = options.hotUpdateMode === 'changed';
+    const matchesConfiguredFiles = createFileMatcher(cwd, options.files);
     let running = null;
-    const runBiome = async () => {
+    let pendingFullRun = false;
+    const pendingFiles = new Set();
+    const runBiome = async (targetFiles) => {
         // Use process.execPath to invoke Node.js explicitly (Windows doesn't support shebangs)
-        const biomeCommandBase = options.biomeCommandBase ?? `"${process.execPath}" "${resolveBiomeBin()}"`;
-        const filesPath = path.join(process.cwd(), options.files ?? ".").replace(/(\\\s+)/g, '\\\\$1');
+        const biomeCommandBase = options.biomeCommandBase ??
+            `${quoteForShell(process.execPath)} ${quoteForShell(resolveBiomeBin())}`;
+        const filesToProcess = targetFiles?.length
+            ? targetFiles
+            : [resolveTargetPath(cwd, options.files ?? '.')];
         const command = [
             biomeCommandBase,
             options.mode ?? 'lint',
-            `"${filesPath}"`,
+            ...filesToProcess.map(quoteForShell),
             (options.forceColor ?? true) && '--colors=force',
             options.diagnosticLevel && `--diagnostic-level=${options.diagnosticLevel}`,
             options.logKind && `--log-kind=${options.logKind}`,
@@ -34,7 +63,7 @@ const biomePlugin = (options = {}) => {
             .filter((a) => !!a)
             .join(" ");
         return new Promise((resolve, reject) => {
-            exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
+            exec(command, { cwd }, (error, stdout, stderr) => {
                 if (stderr) {
                     console.error(`Biome Stderr:\n${stderr}`);
                 }
@@ -48,34 +77,80 @@ const biomePlugin = (options = {}) => {
             });
         });
     };
-    const executeCommand = async () => {
+    const queueFullRun = () => {
+        pendingFullRun = true;
+        pendingFiles.clear();
+    };
+    const queueFileRun = (file) => {
+        if (!pendingFullRun) {
+            pendingFiles.add(file);
+        }
+    };
+    const takePendingRun = () => {
+        if (pendingFullRun) {
+            pendingFullRun = false;
+            pendingFiles.clear();
+            return { kind: 'full' };
+        }
+        if (pendingFiles.size === 0) {
+            return { kind: 'none' };
+        }
+        const files = Array.from(pendingFiles);
+        pendingFiles.clear();
+        return { kind: 'files', files };
+    };
+    const executePendingRun = async () => {
         if (running)
             return running;
-        running = runBiome();
+        const nextRun = takePendingRun();
+        if (nextRun.kind === 'none') {
+            return;
+        }
+        running = runBiome(nextRun.kind === 'files' ? nextRun.files : undefined);
         try {
             await running;
         }
         finally {
             running = null;
+            if (pendingFullRun || pendingFiles.size > 0) {
+                debouncedExecuteCommand();
+            }
         }
     };
     const debounce = (func, wait) => {
         let timeout = null;
         return (...args) => {
-            const context = this;
             if (timeout !== null) {
                 clearTimeout(timeout);
             }
-            timeout = setTimeout(() => func.apply(context, args), wait);
+            timeout = setTimeout(() => func(...args), wait);
         };
     };
-    const debouncedExecuteCommand = debounce(executeCommand, 500);
+    const debouncedExecuteCommand = debounce(() => {
+        void executePendingRun();
+    }, 500);
     return {
         name: 'vite-plugin-biome',
         async buildStart() {
-            await executeCommand();
+            queueFullRun();
+            await executePendingRun();
         },
-        async handleHotUpdate() {
+        async handleHotUpdate(context) {
+            if (!useChangedFileHotUpdates) {
+                queueFullRun();
+                debouncedExecuteCommand();
+                return;
+            }
+            const changedFile = path.resolve(context.file);
+            if (isBiomeConfigFile(changedFile)) {
+                queueFullRun();
+            }
+            else if (matchesConfiguredFiles(changedFile)) {
+                queueFileRun(changedFile);
+            }
+            else {
+                return;
+            }
             debouncedExecuteCommand();
         },
     };

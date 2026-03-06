@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-biome",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "Run Biome in the Vite dev loop for fast linting, formatting, and checks.",
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",

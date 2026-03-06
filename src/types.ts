@@ -2,6 +2,15 @@ export interface Options {
   mode?: Mode;
   files?: string;
   /**
+   * Controls how hot updates trigger Biome during Vite dev.
+   * `full` reruns Biome for the configured `files` scope on every hot update.
+   * `changed` reruns only the edited files when possible, with a full fallback
+   * for Biome config changes.
+   *
+   * Defaults to `full`.
+   */
+  hotUpdateMode?: HotUpdateMode;
+  /**
    * Force color of outputted logs (adds `--colors=force`).
    * Defaults to `true`.
    */
@@ -30,5 +39,6 @@ export interface Options {
 }
 
 export type Mode = 'lint' | 'format' | 'check'
+export type HotUpdateMode = 'full' | 'changed'
 export type LogKind = "pretty" | "compact" | "check"
 export type DiagnosticLevel = "info" | "warn" | "error"

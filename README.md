@@ -4,6 +4,8 @@ Run [Biome](https://biomejs.dev/) inside your Vite dev loop.
 
 `vite-plugin-biome` lets you lint, format, or check files with the Biome version already installed in your project. It runs on Vite startup and reacts to hot updates, so feedback shows up while you build instead of in a separate step.
 
+By default, each hot update reruns Biome for the configured `files` scope. If you want faster feedback during development, you can opt into rerunning only the edited files.
+
 ## Why Use It
 
 - Keep Biome output inside the normal Vite workflow.
@@ -84,6 +86,25 @@ export default defineConfig({
 });
 ```
 
+### Recheck Only Edited Files During HMR
+
+Keep the initial startup run broad, but limit hot updates to the files you just edited.
+
+```ts
+import { defineConfig } from 'vite';
+import biomePlugin from 'vite-plugin-biome';
+
+export default defineConfig({
+  plugins: [
+    biomePlugin({
+      mode: 'check',
+      files: 'src',
+      hotUpdateMode: 'changed',
+    }),
+  ],
+});
+```
+
 ### Strict Build Feedback
 
 Fail the build when Biome reports errors.
@@ -126,6 +147,7 @@ export default defineConfig({
 |---|---|---|---|
 | `mode` | The Biome command to run | `lint`, `format`, `check` | `lint` |
 | `files` | File or glob pattern to process | e.g. `'src/**/*.js'` | `'.'` |
+| `hotUpdateMode` | How Vite hot updates trigger Biome. `full` reruns the configured scope on every change. `changed` reruns only edited files when possible, with a full fallback for Biome config changes. Startup still runs against the configured scope. | `full`, `changed` | `full` |
 | `applyFixes` | Apply Biome fixes automatically | `true`, `false` | `false` |
 | `unsafe` | Allow unsafe fixes, requires `applyFixes` | `true`, `false` | `false` |
 | `failOnError` | Fail the build when Biome returns errors | `true`, `false` | `false` |
