@@ -1,115 +1,143 @@
 # Vite Plugin Biome
 
-This is a Vite plugin for integrating the [Biome](https://biomejs.dev/) linter into your Vite project. It allows you to lint, format, or check your project files using Biome directly within the Vite build process.
-It is much faster than eslint.
+Run [Biome](https://biomejs.dev/) inside your Vite dev loop.
 
-## Features
+`vite-plugin-biome` lets you lint, format, or check files with the Biome version already installed in your project. It runs on Vite startup and reacts to hot updates, so feedback shows up while you build instead of in a separate step.
 
-- Integrates Biome linter, formatter, and checker into the Vite build process.
-- Supports different modes: linting, formatting, and checking.
-- Prints Biome output to the console.
-- Configurable to apply fixes and handle errors.
-- Reacts to hot reload
+## Why Use It
+
+- Keep Biome output inside the normal Vite workflow.
+- Run `lint`, `format`, or `check` without wiring extra scripts into your day-to-day loop.
+- Apply fixes automatically when you want them.
+- Fail the build on Biome errors when you need stricter enforcement.
+- Pass through extra Biome CLI args such as `--changed` or `--config-path=...`.
+
+## AI-Assisted Development
+
+This plugin is not AI-specific, but it fits well into AI-assisted workflows with tools like Cursor, Claude Code, Codex, and Windsurf. When generated edits touch many files quickly, keeping Biome in the Vite loop helps surface feedback immediately without changing your existing setup.
 
 ## Compatibility
 
 This plugin is compatible with:
-- **Biome**: 1.8.0 and higher (including all 2.x versions)
+
+- **Biome**: 1.8.0 and higher, including 2.x
 - **Vite**: 4.x and higher
 - **Node.js**: 16.x and higher
 
-The plugin uses Biome's stable CLI interface, ensuring compatibility across major Biome versions.
-
-> Note: The plugin now resolves and runs the Biome binary already installed in your project (per the peer dependency). If you need to use a different binary, override `biomeCommandBase`.
+By default, the plugin resolves and runs the `@biomejs/biome` binary installed in your project. If you need to use a different command, override `biomeCommandBase`.
 
 ## Installation
 
 ```bash
-npm install vite-plugin-biome @biomejs/biome
+npm install -D vite-plugin-biome @biomejs/biome
 ```
 
 ## Usage
 
-First, add the plugin to your `vite.config.js` file. You can specify the mode (`lint`, `format`, `check`), the files to be processed, and other options.
+Add the plugin to your `vite.config.js` or `vite.config.ts` file.
 
-### Basic Usage
-
-For basic linting:
-
-```javascript
+```ts
+import { defineConfig } from 'vite';
 import biomePlugin from 'vite-plugin-biome';
 
-export default {
+export default defineConfig({
   plugins: [biomePlugin()],
-};
+});
 ```
 
-### Advanced Usage
+## Common Setups
 
-#### Linting
+### Fast Local Guardrails
 
-To lint files without applying fixes:
+Run Biome in `lint` mode during development.
 
-```javascript
+```ts
+import { defineConfig } from 'vite';
 import biomePlugin from 'vite-plugin-biome';
 
-export default {
-  plugins: [biomePlugin({
-    mode: 'lint',
-    files: '.' // This is the default, it will lint all files in a project
-  })],
-};
+export default defineConfig({
+  plugins: [
+    biomePlugin({
+      mode: 'lint',
+      files: '.',
+    }),
+  ],
+});
 ```
 
-#### Formatting
+### Auto-Fix During Development
 
-To format and write changes to files:
+Run Biome in `check` mode and write fixes back to disk.
 
-```javascript
+```ts
+import { defineConfig } from 'vite';
 import biomePlugin from 'vite-plugin-biome';
 
-export default {
-  plugins: [biomePlugin({
-    mode: 'format',
-    files: 'src/**/*.js', // Format only JavaScript files in src
-    applyFixes: true
-  })],
-};
+export default defineConfig({
+  plugins: [
+    biomePlugin({
+      mode: 'check',
+      files: '.',
+      applyFixes: true,
+    }),
+  ],
+});
 ```
 
-#### Checking
+### Strict Build Feedback
 
-To perform both linting and formatting with applied fixes:
+Fail the build when Biome reports errors.
 
-```javascript
+```ts
+import { defineConfig } from 'vite';
 import biomePlugin from 'vite-plugin-biome';
 
-export default {
-  plugins: [biomePlugin({
-    mode: 'check',
-    files: '.',
-    applyFixes: true
-  })],
-};
+export default defineConfig({
+  plugins: [
+    biomePlugin({
+      mode: 'check',
+      failOnError: true,
+    }),
+  ],
+});
 ```
 
-### Options
+### Pass Extra Biome Arguments
 
-| Option               | Description                                                                 | Values                          | Default     |
-|----------------------|-----------------------------------------------------------------------------|---------------------------------|-------------|
-| `mode`               | The operation mode of the plugin                                            | `lint`, `format`, `check`       | `lint`      |
-| `files`              | File or glob pattern to process                                             | e.g., `'src/**/*.js'`           | `'.'`       |
-| `applyFixes`         | Whether to apply fixes automatically                                        | `true`, `false`                 | `false`     |
-| `unsafe`             | Allow unsafe fixes (requires `applyFixes`)                                  | `true`, `false`                 | `false`     |
-| `failOnError`        | Whether to fail the build on lint errors                                    | `true`, `false`                 | `false`     |
-| `forceColor`         | Force color output (adds `--colors=force`)                                  | `true`, `false`                 | `true`      |
-| `diagnosticLevel`    | Minimum level of diagnostics to show                                        | `info`, `warn`, `error`         | `info`      |
-| `logKind`            | How the log output should look                                              | `pretty`, `compact`, `check`    | `pretty`    |
-| `biomeCommandBase`   | Override the command used to invoke Biome                                    | e.g., `'npx @biomejs/biome'`   | Auto-resolved |
-| `biomeAdditionalArgs`| Additional CLI arguments passed to Biome                                    | e.g., `'--changed --config-path=...'` | —     |
+Forward additional CLI args to Biome.
+
+```ts
+import { defineConfig } from 'vite';
+import biomePlugin from 'vite-plugin-biome';
+
+export default defineConfig({
+  plugins: [
+    biomePlugin({
+      mode: 'check',
+      biomeAdditionalArgs: '--changed',
+    }),
+  ],
+});
+```
+
+## Options
+
+| Option | Description | Values | Default |
+|---|---|---|---|
+| `mode` | The Biome command to run | `lint`, `format`, `check` | `lint` |
+| `files` | File or glob pattern to process | e.g. `'src/**/*.js'` | `'.'` |
+| `applyFixes` | Apply Biome fixes automatically | `true`, `false` | `false` |
+| `unsafe` | Allow unsafe fixes, requires `applyFixes` | `true`, `false` | `false` |
+| `failOnError` | Fail the build when Biome returns errors | `true`, `false` | `false` |
+| `forceColor` | Force color output by adding `--colors=force` | `true`, `false` | `true` |
+| `diagnosticLevel` | Minimum diagnostic level to show | `info`, `warn`, `error` | `info` |
+| `logKind` | Output style for Biome logs | `pretty`, `compact`, `check` | `pretty` |
+| `biomeCommandBase` | Override the command used to invoke Biome | e.g. `'npx @biomejs/biome'` | Auto-resolved |
+| `biomeAdditionalArgs` | Additional CLI arguments passed to Biome | e.g. `'--changed --config-path=...'` | — |
 
 ## License
 
 [MIT LICENSE](LICENSE)
 
+If this plugin saves you time, consider starring the repo:
 [GitHub](https://github.com/skrulling/vite-plugin-biome)
